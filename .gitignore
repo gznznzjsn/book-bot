@@ -1,0 +1,12 @@
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### Sbt ###
+target/
+project/
+
+### Custom ###
+**/c.conf
