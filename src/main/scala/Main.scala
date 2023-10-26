@@ -1,14 +1,14 @@
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
+import com.typesafe.config.ConfigFactory
+import zio._
+import zio.{ZIO, ZIOAppArgs}
 
-object Main {
-  def main(args: Array[String]): Unit = {
-    val bot = TextToSpeechBot
-    val eol = bot.run()
-    println("Press [ENTER] to shutdown the bot, it may take a few seconds...")
-    scala.io.StdIn.readLine()
-    bot.shutdown() // initiate shutdown
-    // Wait for the bot end-of-life
-    Await.result(eol, Duration.Inf) // ScalaJs wont't let you do this
+object Main extends zio.ZIOAppDefault {
+
+  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
+    val loadToken = ZIO.attempt(ConfigFactory.load("c").getString("token"))
+    for {
+      token <- loadToken
+      _ <- new CommandsBot(token).startPolling().map(_ => ExitCode.success)
+    } yield ()
   }
 }
