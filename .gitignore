@@ -6,7 +6,10 @@
 
 ### Sbt ###
 target/
-project/
+project/target/
+project/project/
+
+
 
 ### Custom ###
 **/c.conf
