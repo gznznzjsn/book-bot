@@ -1,14 +1,18 @@
+import bookbot.server.CommandsBot
+import bookbot.service.BookServiceLive
 import com.typesafe.config.ConfigFactory
-import zio._
-import zio.{ZIO, ZIOAppArgs}
+import zio.{ZIO, _}
 
 object Main extends zio.ZIOAppDefault {
 
-  override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = {
-    val loadToken = ZIO.attempt(ConfigFactory.load("c").getString("token"))
-    for {
-      token <- loadToken
-      _ <- new CommandsBot(token).startPolling().map(_ => ExitCode.success)
-    } yield ()
-  }
+
+  override def run: Task[Unit] =
+    ZIO
+      .serviceWithZIO[CommandsBot](_.startPolling)
+      .provide(
+        ZLayer.succeed(ConfigFactory.load("c").getString("token")),
+        CommandsBot.layer,
+        BookServiceLive.layer
+      )
+
 }

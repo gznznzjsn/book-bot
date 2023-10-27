@@ -6,6 +6,27 @@ val http4sVersion = "0.23.18"
 val http4sBlaze = "0.23.14"
 val zioVersion = "2.0.13" // Scala library for asynchronous and concurrent programming
 val zioMetricsConnectorsVersion = "2.0.8"
+val zioJsonVersion              = "0.5.0"
+
+val sharedSettings = Seq(
+  libraryDependencies ++= Seq(
+    "dev.zio" %% "zio-json" % zioJsonVersion
+  ),
+  scalacOptions ++= Seq(
+    "-deprecation",
+    "-encoding",
+    "utf8",
+    "-feature",
+    "-language:existentials",
+    "-language:higherKinds",
+    "-language:implicitConversions",
+    "-unchecked",
+    "-Xfatal-warnings",
+    "-Ymacro-annotations"
+  )
+)
+
+
 
 lazy val root = (project in file("."))
   .settings(
