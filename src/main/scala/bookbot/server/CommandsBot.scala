@@ -60,7 +60,7 @@ case class CommandsBot(
       case Seq(title, author) =>
         for {
           _ <- reply("Started creation...")
-          book <- new BookServiceLive().create(title, author)
+          book <- bookService.create(title, author)
           _ <- reply(s"Book (${book.title}, ${book.author}) is created with id = ${book.id}")
         } yield ()
     }
