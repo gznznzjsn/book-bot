@@ -7,6 +7,12 @@ val http4sBlaze = "0.23.14"
 val zioVersion = "2.0.13" // Scala library for asynchronous and concurrent programming
 val zioMetricsConnectorsVersion = "2.0.8"
 val zioJsonVersion              = "0.5.0"
+val postgresVersion             = "42.5.4"     // Java database connectivity (JDBC) driver for PostgreSQL
+val zioQuillVersion             = "4.6.0"  // compile-time database query library for ZIO
+val flywayVersion               = "9.16.0"     // manages database migrations
+
+Global / onChangedBuildSource := ReloadOnSourceChanges
+
 
 val sharedSettings = Seq(
   libraryDependencies ++= Seq(
@@ -41,11 +47,18 @@ lazy val root = (project in file("."))
       "dev.zio" %% "zio-test-sbt" % zioVersion % Test,
       "dev.zio" %% "zio-interop-cats" % "23.1.0.0",
       "com.softwaremill.sttp.client3" %% "async-http-client-backend-zio" % "3.9.0",
-      "org.typelevel" %% "cats-effect" % "3.4.8"
+      "org.typelevel" %% "cats-effect" % "3.4.8",
+      "io.getquill" %% "quill-jdbc-zio" % zioQuillVersion,
+      "org.postgresql" % "postgresql" % postgresVersion,
+      "org.flywaydb"           % "flyway-core"                       % flywayVersion,
+
     ),
     Test / fork := true,
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )
+  .enablePlugins(JavaAppPackaging)
+  .settings(sharedSettings)
+  .enablePlugins(FlywayPlugin)
 
 
 

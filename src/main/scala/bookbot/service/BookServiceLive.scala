@@ -12,18 +12,12 @@ import javax.sql.DataSource
  * a connection pool.
  */
 final case class BookServiceLive(
-//                                  dataSource: DataSource
+                                  dataSource: DataSource
                                 ) extends BookService {
 
-//  // QuillContext needs to be imported here to expose the methods in the QuillContext object.
-//
-//  import QuillContext._
-//
-//  /** `encodeSpecies` and `decodeSpecies` are helper functions used to convert
-//   * Species to strings and strings to Species respectively.
-//   */
-//  implicit val encodeSpecies: MappedEncoding[Species, String] = MappedEncoding[Species, String](_.toString)
-//  implicit val decodeSpecies: MappedEncoding[String, Species] = MappedEncoding[String, Species](Species.fromString)
+  // QuillContext needs to be imported here to expose the methods in the QuillContext object.
+
+  import bookbot.QuillContext._
 
   /** `create` uses the Pet model's `make` method to create a new Pet. The Pet
    * is formatted into a query string, then inserted into the database using
@@ -33,17 +27,17 @@ final case class BookServiceLive(
   override def create(title: String, author: String): Task[Book] =
     for {
       book <- Book.make(title, author)
+      _ <- run(query[Book].insertValue(lift(book))).provideEnvironment(ZEnvironment(dataSource))
       _ <- ZIO.attempt(println(s"Book '${book.title} by ${book.author}' is created"))
-      _ <- Metric.counter("pet.created").increment
     } yield book
 
-//  /** `get` uses `filter` to find a Pet in the database whose ID matches the one
-//   * provided and returns it.
-//   */
-//  override def get(id: PetId): Task[Option[Pet]] =
-//    run(query[Pet].filter(_.id == lift(id)))
-//      .provideEnvironment(ZEnvironment(dataSource))
-//      .map(_.headOption)
+  //  /** `get` uses `filter` to find a Pet in the database whose ID matches the one
+  //   * provided and returns it.
+  //   */
+  //  override def get(id: PetId): Task[Option[Pet]] =
+  //    run(query[Pet].filter(_.id == lift(id)))
+  //      .provideEnvironment(ZEnvironment(dataSource))
+  //      .map(_.headOption)
 
 }
 
@@ -52,6 +46,6 @@ final case class BookServiceLive(
  */
 object BookServiceLive {
 
-  val layer: ZLayer[Any, Nothing, BookServiceLive] = ZLayer.fromFunction(BookServiceLive.apply _)
+  val layer: ZLayer[DataSource, Nothing, BookServiceLive] = ZLayer.fromFunction(BookServiceLive.apply _)
 
 }
