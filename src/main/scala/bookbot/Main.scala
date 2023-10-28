@@ -1,7 +1,7 @@
 package bookbot
 
 import bookbot.server.CommandsBot
-import bookbot.service.BookServiceLive
+import bookbot.service.{BookServiceLive, MemberServiceLive}
 import com.typesafe.config.ConfigFactory
 import zio.{Task, ZIO, ZLayer}
 
@@ -21,7 +21,8 @@ object Main extends zio.ZIOAppDefault {
           ZLayer.succeed(ConfigFactory.load("c").getString("token")),
           CommandsBot.layer,
           BookServiceLive.layer,
-          QuillContext.dataSourceLayer
+          QuillContext.dataSourceLayer,
+          MemberServiceLive.layer
         )
     } yield ()
 

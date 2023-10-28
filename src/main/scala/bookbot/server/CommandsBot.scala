@@ -3,13 +3,10 @@ package bookbot.server
 import bookbot.service.BookService
 import com.bot4s.telegram.api.declarative._
 import com.bot4s.telegram.cats.{Polling, TelegramBot}
-import com.bot4s.telegram.models.Message
 import org.asynchttpclient.Dsl.asyncHttpClient
 import sttp.client3.asynchttpclient.zio.AsyncHttpClientZioBackend
 import zio._
 import zio.interop.catz._
-
-import scala.util.Try
 
 case class CommandsBot(
                         token: String,
@@ -26,8 +23,8 @@ case class CommandsBot(
     implicit msg => {
       case Seq(title, author) =>
         for {
-          book <- bookService.create(title, author)
-          _ <- reply(s"Book (${book.title}, ${book.author}) is created with id = ${book.id}")
+          book <- bookService.create(msg.from.get.id, title, author) //todo .get????
+          _ <- reply(s"Book (${book.title}, ${book.author}) is created with user id = ${book.memberId}")
         } yield ()
     }
   }
@@ -36,6 +33,7 @@ case class CommandsBot(
 
 object CommandsBot {
 
-  val layer: ZLayer[String with BookService, Nothing, CommandsBot] = ZLayer.fromFunction(CommandsBot.apply _)
+  val layer: ZLayer[String with BookService, Nothing, CommandsBot] =
+    ZLayer.fromFunction(CommandsBot.apply _)
 
 }

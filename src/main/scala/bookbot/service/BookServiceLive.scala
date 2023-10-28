@@ -3,13 +3,13 @@ package bookbot.service
 
 import bookbot.models.Book
 import zio._
-import zio.metrics._
 
 import javax.sql.DataSource
 
 
 final case class BookServiceLive(
-                                  dataSource: DataSource
+                                  dataSource: DataSource,
+                                  memberService: MemberService
                                 ) extends BookService {
 
   import bookbot.QuillContext._
@@ -19,11 +19,15 @@ final case class BookServiceLive(
    * `provideEnvironment` to provide the datasource to the effect returned by
    * `run`. The created Pet is returned.
    */
-  override def create(userTelegramId: Long, title: String, author: String): Task[Book] =
+  override def create(memberTelegramId: Long, title: String, author: String): Task[Book] =
     for {
-      book <- Book.make(userTelegramId, title, author)
+      memberOptional <- memberService.getByTelegramId(memberTelegramId)
+      member <- memberOptional match {
+        case Some(value) => ZIO.attempt(value)
+        case None => memberService.create(memberTelegramId)
+      } // is FP???
+      book <- Book.make(member.id, title, author)
       _ <- run(query[Book].insertValue(lift(book))).provideEnvironment(ZEnvironment(dataSource))
-      _ <- ZIO.attempt(println(s"Book '${book.title} by ${book.author}' is created"))
     } yield book
 
   //  /** `get` uses `filter` to find a Pet in the database whose ID matches the one
@@ -41,6 +45,6 @@ final case class BookServiceLive(
  */
 object BookServiceLive {
 
-  val layer: ZLayer[DataSource, Nothing, BookServiceLive] = ZLayer.fromFunction(BookServiceLive.apply _)
+  val layer: ZLayer[DataSource with MemberService, Nothing, BookServiceLive] = ZLayer.fromFunction(BookServiceLive.apply _)
 
 }
