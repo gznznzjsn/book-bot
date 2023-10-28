@@ -9,6 +9,7 @@ import zio.json._
  */
 final case class Book(
                        id: BookId,
+                       userTelegramId: Long,
                        title: String,
                        author: String
                      )
@@ -19,10 +20,11 @@ object Book {
    * ID and assign that to the Pet we are creating.
    */
   def make(
+            userTelegramId: Long,
             title: String,
             author: String
           ): UIO[Book] =
-    BookId.random.map(Book(_, title, author))
+    BookId.random.map(Book(_, userTelegramId, title, author))
 
   /** Derives a JSON codec for the Pet type allowing it to be (de)serialized.
    */

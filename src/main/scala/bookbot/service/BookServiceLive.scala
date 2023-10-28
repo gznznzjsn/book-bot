@@ -7,15 +7,10 @@ import zio.metrics._
 
 import javax.sql.DataSource
 
-/** PetServiceLive is a service which provides the "live" implementation of the
- * PetService. This implementation uses a DataSource, which will concretely be
- * a connection pool.
- */
+
 final case class BookServiceLive(
                                   dataSource: DataSource
                                 ) extends BookService {
-
-  // QuillContext needs to be imported here to expose the methods in the QuillContext object.
 
   import bookbot.QuillContext._
 
@@ -24,9 +19,9 @@ final case class BookServiceLive(
    * `provideEnvironment` to provide the datasource to the effect returned by
    * `run`. The created Pet is returned.
    */
-  override def create(title: String, author: String): Task[Book] =
+  override def create(userTelegramId: Long, title: String, author: String): Task[Book] =
     for {
-      book <- Book.make(title, author)
+      book <- Book.make(userTelegramId, title, author)
       _ <- run(query[Book].insertValue(lift(book))).provideEnvironment(ZEnvironment(dataSource))
       _ <- ZIO.attempt(println(s"Book '${book.title} by ${book.author}' is created"))
     } yield book
