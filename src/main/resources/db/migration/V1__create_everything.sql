@@ -4,13 +4,13 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS book
 (
-    id          uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id BIGINT,
-    title       text NOT NULL,
-    author      text NOT NULL
+    id        uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    member_id uuid,
+    title     text NOT NULL,
+    author    text NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS "user"
+CREATE TABLE IF NOT EXISTS member
 (
     id          uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     telegram_id BIGINT UNIQUE

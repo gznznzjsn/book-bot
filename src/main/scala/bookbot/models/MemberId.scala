@@ -10,21 +10,21 @@ import java.util.UUID
  * This is a merely a convenience to prevent us from passing the wrong ID type
  * along
  */
-final case class UserId(id: UUID) extends AnyVal
+final case class MemberId(id: UUID) extends AnyVal
 
-object UserId {
+object MemberId {
 
   /** Generates a Random UUID and wraps it in the PetId type. */
-  def random: UIO[UserId] = Random.nextUUID.map(UserId(_))
+  def random: UIO[MemberId] = Random.nextUUID.map(MemberId(_))
 
   /** Allows a UUID to be parsed from a string which is then wrapped in the
    * PetId type.
    */
-  def fromString(id: String): Task[UserId] =
+  def fromString(id: String): Task[MemberId] =
     ZIO.attempt {
-      UserId(UUID.fromString(id))
+      MemberId(UUID.fromString(id))
     }
 
   /** Derives a codec allowing a UUID to be (de)serialized as an PetId. */
-  implicit val codec: JsonCodec[UserId] = JsonCodec[UUID].transform(UserId(_), _.id)
+  implicit val codec: JsonCodec[MemberId] = JsonCodec[UUID].transform(MemberId(_), _.id)
 }
