@@ -4,6 +4,7 @@ package bookbot.service
 import bookbot.models.{Book, Member}
 import zio._
 
+import java.time.LocalDate
 import javax.sql.DataSource
 
 
@@ -14,14 +15,14 @@ final case class BookServiceLive(
 
   import bookbot.QuillContext._
 
-  override def create(memberTelegramId: Long, title: String, author: String): Task[Book] =
+  override def create(memberTelegramId: Long, title: String, author: String, startDate: LocalDate): Task[Book] =
     for {
       memberOptional <- memberService.getByTelegramId(memberTelegramId)
       member <- memberOptional match {
         case Some(value) => ZIO.attempt(value)
         case None => memberService.create(memberTelegramId)
       } // is FP???
-      book <- Book.make(member.id, title, author)
+      book <- Book.make(member.id, title, author, startDate, None)
       _ <- run(query[Book].insertValue(lift(book))).provideEnvironment(ZEnvironment(dataSource))
     } yield book
 
