@@ -14,17 +14,28 @@ case class CommandsBot(
                       )
   extends TelegramBot[Task](
     token,
-    AsyncHttpClientZioBackend.usingClient(
-      zio.Runtime.default, asyncHttpClient()
-    )
+    AsyncHttpClientZioBackend.usingClient(zio.Runtime.default, asyncHttpClient())
   ) with Polling[Task] with Commands[Task] with RegexCommands[Task] {
 
-  onRegex("""create\s+([a-zA-Z\s]+) by ([a-zA-Z\s*]+)""".r) {
+  onRegex("""\s*[Нн]ачала?\s*['"«]([а-яА-Я\s]+)['"»]\s*([а-яА-Я\s]+)\s*""".r) {
     implicit msg => {
       case Seq(title, author) =>
         for {
-          book <- bookService.create(msg.from.get.id, title, author) //todo .get????
+          book <- bookService.create(msg.from.get.id, title.trim, author.trim) //todo .get????
           _ <- reply(s"Book (${book.title}, ${book.author}) is created with user id = ${book.memberId}")
+        } yield ()
+    }
+  }
+
+  onRegex("""\s*[Вв]се\s*""".r) {
+    implicit msg => {
+      _ =>
+        for {
+          books <- bookService.getForMember(msg.from.get.id) //todo .get????
+          _ <- reply(
+            if (books.isEmpty) s"Вы еще не читали ни одной книги"
+            else books.map(b => s"\"${b.title}\" ${b.author}").mkString("\n")
+          )
         } yield ()
     }
   }

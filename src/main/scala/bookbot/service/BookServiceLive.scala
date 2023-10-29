@@ -1,7 +1,7 @@
 package bookbot.service
 
 
-import bookbot.models.Book
+import bookbot.models.{Book, Member}
 import zio._
 
 import javax.sql.DataSource
@@ -14,11 +14,6 @@ final case class BookServiceLive(
 
   import bookbot.QuillContext._
 
-  /** `create` uses the Pet model's `make` method to create a new Pet. The Pet
-   * is formatted into a query string, then inserted into the database using
-   * `provideEnvironment` to provide the datasource to the effect returned by
-   * `run`. The created Pet is returned.
-   */
   override def create(memberTelegramId: Long, title: String, author: String): Task[Book] =
     for {
       memberOptional <- memberService.getByTelegramId(memberTelegramId)
@@ -30,19 +25,17 @@ final case class BookServiceLive(
       _ <- run(query[Book].insertValue(lift(book))).provideEnvironment(ZEnvironment(dataSource))
     } yield book
 
-  //  /** `get` uses `filter` to find a Pet in the database whose ID matches the one
-  //   * provided and returns it.
-  //   */
-  //  override def get(id: PetId): Task[Option[Pet]] =
-  //    run(query[Pet].filter(_.id == lift(id)))
-  //      .provideEnvironment(ZEnvironment(dataSource))
-  //      .map(_.headOption)
-
+  override def getForMember(memberTelegramId: Long): Task[List[Book]] = {
+    run(
+      query[Book]
+        .join(query[Member]).on(_.memberId == _.id)
+        .filter(_._2.telegramId == lift(memberTelegramId))
+        .map(_._1)
+    )
+      .provideEnvironment(ZEnvironment(dataSource))
+  }
 }
 
-/** Here in the companion object we define the layer that provides the live
- * implementation of the PetService.
- */
 object BookServiceLive {
 
   val layer: ZLayer[DataSource with MemberService, Nothing, BookServiceLive] = ZLayer.fromFunction(BookServiceLive.apply _)

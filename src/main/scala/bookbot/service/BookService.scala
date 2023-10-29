@@ -7,6 +7,6 @@ trait BookService {
 
   def create(memberTelegramId: Long, title: String, author: String): Task[Book]
 
-//  def get(id: BookId): Task[Option[Book]]
+  def getForMember(memberTelegramId: Long): Task[List[Book]]
 
 }
