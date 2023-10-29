@@ -1,7 +1,7 @@
 package bookbot.service
 
 
-import bookbot.models.{Book, Member}
+import bookbot.models.{Book, BookId, Member}
 import zio._
 
 import java.time.LocalDate
@@ -43,6 +43,16 @@ final case class BookServiceLive(
         .join(query[Member]).on(_.memberId == _.id)
         .filter(_._2.telegramId == lift(memberTelegramId))
         .map(_._1)
+    )
+      .provideEnvironment(ZEnvironment(dataSource))
+  }
+
+  override def finish(id: BookId, endDate: LocalDate): Task[Book] = {
+    run(
+      query[Book]
+        .filter(_.id == lift(id))
+        .update(_.endDate -> lift(Option(endDate)))
+        .returning(b=>b)
     )
       .provideEnvironment(ZEnvironment(dataSource))
   }
