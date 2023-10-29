@@ -3,7 +3,7 @@ package bookbot.server
 import bookbot.service.BookService
 import com.bot4s.telegram.api.declarative._
 import com.bot4s.telegram.cats.{Polling, TelegramBot}
-import com.bot4s.telegram.models.{InlineKeyboardButton, InlineKeyboardMarkup}
+import com.bot4s.telegram.models.{InlineKeyboardButton, InlineKeyboardMarkup, Message}
 import org.asynchttpclient.Dsl.asyncHttpClient
 import sttp.client3.asynchttpclient.zio.AsyncHttpClientZioBackend
 import zio._
@@ -22,28 +22,52 @@ case class CommandsBot(
 
   onRegex("""\s*[Нн]ачала?\s*['"«]([а-яА-Я\s]+)['"»]\s*([а-яА-Я\s]+)\s*""".r) {
     implicit msg => {
-      case Seq(title, author) =>
-        for {
-          book <- bookService.create(
-            msg.from.get.id, title.trim, author.trim,
-            Instant.ofEpochSecond(msg.date).atZone(ZoneId.systemDefault()).toLocalDate
-          ) //todo .get????
-          _ <- reply(s"${book.startDate} вы начали читать - \"${book.title}\", ${book.author}")
-        } yield ()
+      case Seq(title, author) => for {
+        book <- bookService.create(
+          msg.from.get.id, title.trim, author.trim,
+          Instant.ofEpochSecond(msg.date).atZone(ZoneId.systemDefault()).toLocalDate
+        ) //todo .get????
+        _ <- reply(s"${book.startDate} вы начали читать - \"${book.title}\", ${book.author}")
+      } yield ()
+    }
+  }
+
+  onRegex("""\s*[Тт]екущ(ие|ая)\s*""".r) {
+    implicit msg => { _ =>
+      for {
+        books <- bookService.getCurrent(msg.from.get.id) //todo .get????
+        _ <- reply(
+          if (books.isEmpty) s"На данный момент вы ничего не читаете"
+          else books.map(b => s"\"${b.title}\" ${b.author}").mkString("\n")
+        )
+      } yield ()
     }
   }
 
   onRegex("""\s*[Вв]се\s*""".r) {
-    implicit msg => {
-      _ =>
-        for {
-          books <- bookService.getForMember(msg.from.get.id) //todo .get????
-          _ <- reply(
-            if (books.isEmpty) s"Вы еще не читали ни одной книги"
-            else books.map(b => s"\"${b.title}\" ${b.author}").mkString("\n")
-          )
-        } yield ()
+    implicit msg => { _ =>
+      for {
+        books <- bookService.getForMember(msg.from.get.id) //todo .get????
+        _ <- reply(
+          if (books.isEmpty) s"Вы еще не читали ни одной книги"
+          else books.map(b => s"\"${b.title}\" ${b.author}").mkString("\n")
+        )
+      } yield ()
     }
+  }
+
+  onCommand("/test") {
+    implicit msg =>
+      for {
+        _ <- replyMd(
+          "aa",
+          replyMarkup = Some(InlineKeyboardMarkup.singleButton(
+            InlineKeyboardButton("bbb",
+              url = Some("https://github.com/gznznzjsn/book-bot")
+            )
+          ))
+        )
+      } yield ()
   }
 
 }

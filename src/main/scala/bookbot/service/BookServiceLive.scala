@@ -35,6 +35,18 @@ final case class BookServiceLive(
     )
       .provideEnvironment(ZEnvironment(dataSource))
   }
+
+  override def getCurrent(memberTelegramId: Long): Task[List[Book]] = {
+    run(
+      query[Book]
+        .filter(_.endDate.isEmpty)
+        .join(query[Member]).on(_.memberId == _.id)
+        .filter(_._2.telegramId == lift(memberTelegramId))
+        .map(_._1)
+    )
+      .provideEnvironment(ZEnvironment(dataSource))
+  }
+
 }
 
 object BookServiceLive {

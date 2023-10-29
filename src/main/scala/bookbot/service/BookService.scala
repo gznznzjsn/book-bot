@@ -11,4 +11,6 @@ trait BookService {
 
   def getForMember(memberTelegramId: Long): Task[List[Book]]
 
+  def getCurrent(memberTelegramId: Long): Task[List[Book]]
+
 }
