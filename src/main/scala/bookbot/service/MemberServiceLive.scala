@@ -1,6 +1,6 @@
 package bookbot.service
 
-import bookbot.models.Member
+import bookbot.model.Member
 import zio._
 
 

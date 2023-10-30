@@ -1,4 +1,4 @@
-package bookbot.models
+package bookbot.model
 
 import zio._
 import zio.json.JsonCodec

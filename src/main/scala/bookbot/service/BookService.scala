@@ -1,6 +1,6 @@
 package bookbot.service
 
-import bookbot.models.{Book, BookId}
+import bookbot.model.{Book, BookId}
 import zio.Task
 
 import java.time.LocalDate

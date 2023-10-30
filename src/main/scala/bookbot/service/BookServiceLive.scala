@@ -1,7 +1,7 @@
 package bookbot.service
 
 
-import bookbot.models.{Book, BookId, Member}
+import bookbot.model.{Book, BookId, Member}
 import zio._
 
 import java.time.LocalDate
