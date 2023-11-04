@@ -32,10 +32,8 @@ case class CommandsBot(
     for {
       ack <- ackCallback(Option(cbq.from.firstName + " pressed the button!")).fork
       bookId <- BookId.fromString(cbq.data.get)
-      book <- bookService.finish(
-        bookId,
-        Instant.ofEpochSecond(cbq.message.get.date).atZone(ZoneId.systemDefault()).toLocalDate
-      )
+      _ <- bookService.finish(bookId, cbq.message.get.date)
+      book <- bookService.get(bookId)
       response <- request(
         EditMessageText(
           Option(ChatId(cbq.message.get.source)),
@@ -51,7 +49,7 @@ case class CommandsBot(
     implicit msg => {
       case Seq(title, author) => for {
         book <- bookService.create(
-          msg.from.get.id, title, author,
+          msg.from.get.id, title, author, //todo trim
           Instant.ofEpochSecond(msg.date).atZone(ZoneId.systemDefault()).toLocalDate
         ) //todo .get????
         _ <- reply(s"${book.startDate} вы начали читать - \"${book.title}\", ${book.author}")
@@ -63,11 +61,9 @@ case class CommandsBot(
     implicit msg => { _ =>
       for {
         books <- bookService.getCurrent(msg.from.get.id) //todo .get????
-        _ <- reply {
-          books match {
-            case List() => s"На данный момент вы ничего не читаете"
-            case _ => books.map(b => s"\"${b.title}\" ${b.author}").mkString("\n")
-          }
+        _ <- books match {
+          case List() => reply(s"На данный момент вы ничего не читаете")
+          case _ => reply(books.map(b => s"\"${b.title}\" ${b.author}").mkString("\n"))
         }
       } yield ()
     }
@@ -80,9 +76,9 @@ case class CommandsBot(
         _ <- books match {
           case List() => reply(s"Не могу пометить книгу прочитанной: на данный момент вы ничего не читаете!")
           case List(book) => for {
-            book <- bookService.finish(
+            _ <- bookService.finish(
               book.id,
-              Instant.ofEpochSecond(msg.date).atZone(ZoneId.systemDefault()).toLocalDate
+              msg.date
             )
             _ <- reply(s"${book.startDate} вы прочитали - \"${book.title}\", ${book.author}")
           } yield ()
@@ -100,11 +96,9 @@ case class CommandsBot(
     implicit msg => { _ =>
       for {
         books <- bookService.getForMember(msg.from.get.id) //todo .get????
-        _ <- reply {
-          books match {
-            case List() => s"Вы еще не читали ни одной книги"
-            case _ => books.map(b => s"\"${b.title}\" ${b.author}").mkString("\n")
-          }
+        _ <- books match {
+          case List() => reply(s"Вы еще не читали ни одной книги")
+          case _ => reply(books.map(b => s"\"${b.title}\" ${b.author}").mkString("\n"))
         }
       } yield ()
     }
