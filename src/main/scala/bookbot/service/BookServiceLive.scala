@@ -1,19 +1,17 @@
 package bookbot.service
 
 
-import bookbot.model.{Book, BookId, Member}
+import bookbot.model.{Book, BookId}
+import bookbot.repository.BookRepository
 import zio._
 
-import java.time.LocalDate
-import javax.sql.DataSource
+import java.time.{Instant, LocalDate, ZoneId}
 
 
 final case class BookServiceLive(
-                                  dataSource: DataSource,
+                                  bookRepository: BookRepository,
                                   memberService: MemberService
                                 ) extends BookService {
-
-  import bookbot.QuillContext._
 
   override def create(memberTelegramId: Long, title: String, author: String, startDate: LocalDate): Task[Book] =
     for {
@@ -21,46 +19,31 @@ final case class BookServiceLive(
       member <- memberOptional match {
         case Some(value) => ZIO.attempt(value)
         case None => memberService.create(memberTelegramId)
-      } // is FP???
-      book <- Book.make(member.id, title, author, startDate, None)
-      _ <- run(query[Book].insertValue(lift(book))).provideEnvironment(ZEnvironment(dataSource))
+      }
+      book <- bookRepository.create(member.id, title, author, startDate)
     } yield book
 
-  override def getForMember(memberTelegramId: Long): Task[List[Book]] = {
-    run(
-      query[Book]
-        .join(query[Member]).on(_.memberId == _.id)
-        .filter(_._2.telegramId == lift(memberTelegramId))
-        .map(_._1)
-    )
-      .provideEnvironment(ZEnvironment(dataSource))
+  override def getForMember(memberTelegramId: Long): Task[List[Book]] =
+    bookRepository.getForMember(memberTelegramId)
+
+  override def getCurrent(memberTelegramId: Long): Task[List[Book]] =
+    bookRepository.getCurrent(memberTelegramId)
+
+  override def finish(id: BookId, epochSeconds: Int): Task[Unit] = {
+    for {
+      endDate <- toLocalDate(epochSeconds)
+      _ <- bookRepository.update(id, endDate = Option(Option(endDate)))
+    } yield ()
   }
 
-  override def getCurrent(memberTelegramId: Long): Task[List[Book]] = {
-    run(
-      query[Book]
-        .filter(_.endDate.isEmpty)
-        .join(query[Member]).on(_.memberId == _.id)
-        .filter(_._2.telegramId == lift(memberTelegramId))
-        .map(_._1)
-    )
-      .provideEnvironment(ZEnvironment(dataSource))
-  }
-
-  override def finish(id: BookId, endDate: LocalDate): Task[Book] = {
-    run(
-      query[Book]
-        .filter(_.id == lift(id))
-        .update(_.endDate -> lift(Option(endDate)))
-        .returning(b=>b)
-    )
-      .provideEnvironment(ZEnvironment(dataSource))
-  }
+  private def toLocalDate(epochSeconds: Int): Task[LocalDate] = ZIO.attempt(
+    Instant.ofEpochSecond(epochSeconds).atZone(ZoneId.systemDefault()).toLocalDate
+  )
 
 }
 
 object BookServiceLive {
 
-  val layer: ZLayer[DataSource with MemberService, Nothing, BookServiceLive] = ZLayer.fromFunction(BookServiceLive.apply _)
+  val layer: ZLayer[BookRepository with MemberService, Nothing, BookService] = ZLayer.fromFunction(BookServiceLive.apply _)
 
 }

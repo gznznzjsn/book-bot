@@ -13,6 +13,6 @@ trait BookService {
 
   def getCurrent(memberTelegramId: Long): Task[List[Book]]
 
-  def finish(id: BookId, endDate: LocalDate): Task[Book]
+  def finish(id: BookId, epochSeconds: Int): Task[Unit]
 
 }
