@@ -13,13 +13,14 @@ final case class BookServiceLive(
                                   memberService: MemberService
                                 ) extends BookService {
 
-  override def create(memberTelegramId: Long, title: String, author: String, startDate: LocalDate): Task[Book] =
+  override def create(memberTelegramId: Long, title: String, author: String, startDateInEpochSeconds: Int): Task[Book] =
     for {
       memberOptional <- memberService.getByTelegramId(memberTelegramId)
       member <- memberOptional match {
         case Some(value) => ZIO.attempt(value)
         case None => memberService.create(memberTelegramId)
       }
+      startDate <- toLocalDate(startDateInEpochSeconds)
       book <- bookRepository.create(member.id, title, author, startDate)
     } yield book
 
@@ -29,9 +30,9 @@ final case class BookServiceLive(
   override def getCurrent(memberTelegramId: Long): Task[List[Book]] =
     bookRepository.getCurrent(memberTelegramId)
 
-  override def finish(id: BookId, epochSeconds: Int): Task[Unit] = {
+  override def finish(id: BookId, endDateInEpochSeconds: Int): Task[Unit] = {
     for {
-      endDate <- toLocalDate(epochSeconds)
+      endDate <- toLocalDate(endDateInEpochSeconds)
       _ <- bookRepository.update(id, endDate = Option(Option(endDate)))
     } yield ()
   }

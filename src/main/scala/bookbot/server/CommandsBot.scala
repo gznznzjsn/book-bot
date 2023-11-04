@@ -45,13 +45,11 @@ case class CommandsBot(
     } yield ()
   }
 
-  onRegex("""\s*[Нн]ачала?\s*['"«]\s*([а-яА-Я\s]+)\s*['"»]\s*([а-яА-Я\s]+)\s*""".r) {
+  onRegex("""\s*[Нн]ачала?\s*['"«]([а-яА-Я\s]+)['"»]\s*([а-яА-Я\s]+)\s*""".r) {
     implicit msg => {
-      case Seq(title, author) => for {
+      case Seq(title, author) => for {//todo trim author and title
         book <- bookService.create(
-          msg.from.get.id, title, author, //todo trim
-          Instant.ofEpochSecond(msg.date).atZone(ZoneId.systemDefault()).toLocalDate
-        ) //todo .get????
+          msg.from.get.id, title, author, msg.date) //todo .get????
         _ <- reply(s"${book.startDate} вы начали читать - \"${book.title}\", ${book.author}")
       } yield ()
     }

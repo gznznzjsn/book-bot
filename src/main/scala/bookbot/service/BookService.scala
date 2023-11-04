@@ -3,11 +3,9 @@ package bookbot.service
 import bookbot.model.{Book, BookId}
 import zio.Task
 
-import java.time.LocalDate
-
 trait BookService {
 
-  def create(memberTelegramId: Long, title: String, author: String, startDate: LocalDate): Task[Book]
+  def create(memberTelegramId: Long, title: String, author: String, startDateInEpochSeconds: Int): Task[Book]
 
   def get(id: BookId): Task[Book]
 
@@ -15,6 +13,6 @@ trait BookService {
 
   def getCurrent(memberTelegramId: Long): Task[List[Book]]
 
-  def finish(id: BookId, epochSeconds: Int): Task[Unit]
+  def finish(id: BookId, endDateInEpochSeconds: Int): Task[Unit]
 
 }
