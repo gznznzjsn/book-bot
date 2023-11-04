@@ -7,8 +7,8 @@ import zio._
 import javax.sql.DataSource
 
 final case class MemberServiceLive(
-                       dataSource: DataSource
-                     ) extends MemberService {
+                                    dataSource: DataSource
+                                  ) extends MemberService {
 
   import bookbot.QuillContext._
 
@@ -27,6 +27,6 @@ final case class MemberServiceLive(
 
 object MemberServiceLive {
 
-  val layer: ZLayer[DataSource, Nothing, MemberServiceLive] = ZLayer.fromFunction(MemberServiceLive.apply _)
+  val layer: ZLayer[DataSource, Nothing, MemberService] = ZLayer.fromFunction(MemberServiceLive.apply _)
 
 }
