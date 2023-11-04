@@ -9,6 +9,8 @@ trait BookRepository {
 
   def create(memberId: MemberId, title: String, author: String, startDate: LocalDate): Task[Book]
 
+  def get(id: BookId): Task[Option[Book]]
+
   def getCurrent(memberTelegramId: Long): Task[List[Book]]
 
   def getForMember(memberTelegramId: Long): Task[List[Book]]

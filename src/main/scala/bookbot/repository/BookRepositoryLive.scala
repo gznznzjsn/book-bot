@@ -18,6 +18,12 @@ final case class BookRepositoryLive(
       _ <- run(query[Book].insertValue(lift(book))).provideEnvironment(ZEnvironment(dataSource))
     } yield book
 
+  override def get(id: BookId): Task[Option[Book]] =
+    run(query[Book].filter(_.id == lift(id)))
+      .provideEnvironment(ZEnvironment(dataSource))
+      .map(_.headOption)
+
+
   override def getCurrent(memberTelegramId: Long): Task[List[Book]] = {
     run(
       query[Book]

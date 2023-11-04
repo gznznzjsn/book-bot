@@ -40,6 +40,14 @@ final case class BookServiceLive(
     Instant.ofEpochSecond(epochSeconds).atZone(ZoneId.systemDefault()).toLocalDate
   )
 
+  override def get(id: BookId): Task[Book] =
+    for {
+      bookOpt <- bookRepository.get(id)
+      book <- bookOpt match {
+        case Some(book) => ZIO.succeed(book)
+        case None => ZIO.die(new RuntimeException("Book not found!")) //todo
+      }
+    } yield book
 }
 
 object BookServiceLive {
