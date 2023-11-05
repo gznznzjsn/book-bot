@@ -15,11 +15,7 @@ final case class BookServiceLive(
 
   override def create(memberTelegramId: Long, title: String, author: String, startDateInEpochSeconds: Int): Task[Book] =
     for {
-      memberOptional <- memberService.getByTelegramId(memberTelegramId)
-      member <- memberOptional match {
-        case Some(value) => ZIO.attempt(value)
-        case None => memberService.create(memberTelegramId)
-      }
+      member <- memberService.getByTelegramId(memberTelegramId)
       startDate <- toLocalDate(startDateInEpochSeconds)
       book <- bookRepository.create(member.id, title, author, startDate)
     } yield book
