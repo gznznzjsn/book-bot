@@ -1,6 +1,6 @@
 package bookbot
 
-import bookbot.repository.BookRepositoryLive
+import bookbot.repository.{BookRepositoryLive, MemberRepositoryLive}
 import bookbot.server.CommandsBot
 import bookbot.service.{BookServiceLive, MemberServiceLive}
 import com.typesafe.config.ConfigFactory
@@ -24,6 +24,7 @@ object Main extends zio.ZIOAppDefault {
           BookServiceLive.layer,
           MemberServiceLive.layer,
           BookRepositoryLive.layer,
+          MemberRepositoryLive.layer,
           QuillContext.dataSourceLayer
         )
     } yield ()
