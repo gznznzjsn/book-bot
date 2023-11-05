@@ -7,6 +7,6 @@ trait MemberService {
 
   def getOrCreate(telegramId: Long): Task[Member]
 
-  def create(memberTelegramId: Long): Task[Member]
+  def create(telegramId: Long): Task[Member]
 
 }

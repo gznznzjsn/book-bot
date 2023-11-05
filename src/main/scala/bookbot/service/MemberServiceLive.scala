@@ -19,8 +19,8 @@ final case class MemberServiceLive(
       }
     } yield member
 
-  override def create(memberTelegramId: Long): Task[Member] =
-    repository.create(memberTelegramId)
+  override def create(telegramId: Long): Task[Member] =
+    repository.create(telegramId)
 
 }
 
