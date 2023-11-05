@@ -10,12 +10,12 @@ final case class MemberServiceLive(
                                   ) extends MemberService {
 
 
-  override def getByTelegramId(telegramId: Long): Task[Member] =
+  override def getOrCreate(telegramId: Long): Task[Member] =
     for {
       memberOpt <- repository.getByTelegramId(telegramId)
       member <- memberOpt match {
         case Some(member) => ZIO.succeed(member)
-        case None => ZIO.die(new RuntimeException("Member not found!")) //todo
+        case None => repository.create(telegramId)
       }
     } yield member
 
