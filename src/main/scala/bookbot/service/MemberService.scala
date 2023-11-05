@@ -5,8 +5,8 @@ import zio.Task
 
 trait MemberService {
 
-  def getByTelegramId(telegramId: Long): Task[Member]
+  def getOrCreate(telegramId: Long): Task[Member]
 
-  def create(memberTelegramId: Long): Task[Member]
+  def create(telegramId: Long): Task[Member]
 
 }

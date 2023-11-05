@@ -15,7 +15,7 @@ final case class BookServiceLive(
 
   override def create(memberTelegramId: Long, title: String, author: String, startDateInEpochSeconds: Int): Task[Book] =
     for {
-      member <- memberService.getByTelegramId(memberTelegramId)
+      member <- memberService.getOrCreate(memberTelegramId)
       startDate <- toLocalDate(startDateInEpochSeconds)
       book <- bookRepository.create(member.id, title, author, startDate)
     } yield book
