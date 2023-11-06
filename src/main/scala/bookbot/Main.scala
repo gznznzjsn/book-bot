@@ -1,11 +1,10 @@
 package bookbot
 
 import bookbot.repository.{BookRepositoryLive, MemberRepositoryLive}
-import bookbot.server.{BookListener, CommandsBot, BookBotServer, TelegramListener}
+import bookbot.server.{BotStarter, BookListener, CoreBot}
 import bookbot.service.{BookServiceLive, MemberServiceLive}
 import com.typesafe.config.ConfigFactory
 import zio.{Task, ZIO, ZLayer}
-import zio._
 
 
 object Main extends zio.ZIOAppDefault {
@@ -19,11 +18,12 @@ object Main extends zio.ZIOAppDefault {
           QuillContext.dataSourceLayer
         )
       _ <- ZIO
-        .serviceWithZIO[BookBotServer](_.start())
+        .serviceWithZIO[BotStarter](_.start())
         .provide(
+          BotStarter.layer,
           ZLayer.succeed(ConfigFactory.load("c").getString("token")),
-         ZLayer.collectAll(List(BookListener.layer)), BookBotServer.layer,
-          CommandsBot.layer,
+          CoreBot.layer,
+          ZLayer.collectAll(Seq(BookListener.layer)),
           BookServiceLive.layer,
           MemberServiceLive.layer,
           BookRepositoryLive.layer,

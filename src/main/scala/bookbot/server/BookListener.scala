@@ -8,9 +8,9 @@ import zio.{Task, ZIO, ZLayer}
 
 
 
-final case class BookListener(bookService: BookService) extends TelegramListener[CommandsBot] {
+final case class BookListener(bookService: BookService) extends TelegramListener[CoreBot] {
 
-  override def listen(bot: CommandsBot): Task[Unit] = ZIO.attempt {
+  override def listen(bot: CoreBot): Task[Unit] = ZIO.attempt {
 
     bot.onRegex("""\s*[Тт]екущ(ие|ая)\s*""".r) {
       implicit msg => { _ =>
@@ -103,7 +103,7 @@ final case class BookListener(bookService: BookService) extends TelegramListener
 
 object BookListener {
 
-  val layer: ZLayer[BookService, Nothing, TelegramListener[CommandsBot]] =
+  val layer: ZLayer[BookService, Nothing, TelegramListener[CoreBot]] =
     ZLayer.fromFunction(BookListener.apply _)
 
 }
