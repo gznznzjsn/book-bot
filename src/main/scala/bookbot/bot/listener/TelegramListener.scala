@@ -1,4 +1,4 @@
-package bookbot.server
+package bookbot.bot.listener
 
 import com.bot4s.telegram.api.BotBase
 import zio.Task

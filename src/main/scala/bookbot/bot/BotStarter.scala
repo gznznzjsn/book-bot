@@ -1,5 +1,6 @@
-package bookbot.server
+package bookbot.bot
 
+import bookbot.bot.listener.TelegramListener
 import zio.{Task, ZIO, ZLayer}
 
 final case class BotStarter(

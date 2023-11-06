@@ -1,5 +1,6 @@
-package bookbot.server
+package bookbot.bot.listener
 
+import bookbot.bot.CoreBot
 import bookbot.model.{Book, BookId}
 import bookbot.service.BookService
 import com.bot4s.telegram.methods.EditMessageText

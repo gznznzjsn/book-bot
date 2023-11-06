@@ -1,4 +1,4 @@
-package bookbot.server
+package bookbot.bot
 
 import com.bot4s.telegram.api.declarative._
 import com.bot4s.telegram.cats.{Polling, TelegramBot}

@@ -1,7 +1,8 @@
 package bookbot
 
+import bookbot.bot.listener.BookListener
 import bookbot.repository.{BookRepositoryLive, MemberRepositoryLive}
-import bookbot.server.{BotStarter, BookListener, CoreBot}
+import bookbot.bot.{BotStarter, CoreBot}
 import bookbot.service.{BookServiceLive, MemberServiceLive}
 import com.typesafe.config.ConfigFactory
 import zio.{Task, ZIO, ZLayer}
