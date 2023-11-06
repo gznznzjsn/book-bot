@@ -11,8 +11,6 @@ import sttp.client3.asynchttpclient.zio.AsyncHttpClientZioBackend
 import zio._
 import zio.interop.catz._
 
-import java.time.{Instant, ZoneId}
-
 case class CommandsBot(
                         token: String,
                         bookService: BookService
@@ -96,7 +94,12 @@ case class CommandsBot(
         books <- bookService.getForMember(msg.from.get.id) //todo .get????
         _ <- books match {
           case List() => reply(s"Вы еще не читали ни одной книги")
-          case _ => reply(books.map(b => s"\"${b.title}\" ${b.author}").mkString("\n"))
+          case _ => reply(books.map(b => s"${
+            b.endDate match {
+              case Some(_) => "✅"
+              case None => "⌛"
+            }
+          } \"${b.title}\" ${b.author} ").mkString("\n"))
         }
       } yield ()
     }
