@@ -24,7 +24,7 @@ final case class BookListener(bookService: BookService) extends TelegramListener
 
 object BookListener {
 
-  val layer: ZLayer[BookService, Nothing, BookListener] =
+  val layer: ZLayer[BookService, Nothing, TelegramListener[CommandsBot]] =
     ZLayer.fromFunction(BookListener.apply _)
 
 }
