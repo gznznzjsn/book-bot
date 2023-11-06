@@ -1,10 +1,12 @@
 package bookbot
 
+import bookbot.bot.listener.BookListener
 import bookbot.repository.{BookRepositoryLive, MemberRepositoryLive}
-import bookbot.server.CommandsBot
+import bookbot.bot.{BotStarter, CoreBot}
 import bookbot.service.{BookServiceLive, MemberServiceLive}
 import com.typesafe.config.ConfigFactory
 import zio.{Task, ZIO, ZLayer}
+
 
 object Main extends zio.ZIOAppDefault {
 
@@ -17,10 +19,12 @@ object Main extends zio.ZIOAppDefault {
           QuillContext.dataSourceLayer
         )
       _ <- ZIO
-        .serviceWithZIO[CommandsBot](_.startPolling())
+        .serviceWithZIO[BotStarter](_.start())
         .provide(
+          BotStarter.layer,
           ZLayer.succeed(ConfigFactory.load("c").getString("token")),
-          CommandsBot.layer,
+          CoreBot.layer,
+          ZLayer.collectAll(Seq(BookListener.layer)),
           BookServiceLive.layer,
           MemberServiceLive.layer,
           BookRepositoryLive.layer,
