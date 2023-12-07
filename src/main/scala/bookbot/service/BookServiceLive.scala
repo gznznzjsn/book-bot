@@ -1,6 +1,7 @@
 package bookbot.service
 
 
+import bookbot.QuillContext
 import bookbot.model.{Book, BookId}
 import bookbot.repository.BookRepository
 import zio._
@@ -10,12 +11,13 @@ import javax.sql.DataSource
 
 
 final case class BookServiceLive(
-                                  dataSource: DataSource,
+                                  memberService: MemberService,
                                   bookRepository: BookRepository,
-                                  memberService: MemberService
+                                  dataSource: DataSource
                                 ) extends BookService {
 
-  import bookbot.QuillContext._
+  private def transaction[A](op: ZIO[DataSource, Throwable, A]): Task[A] =
+    QuillContext.transaction(op).provideEnvironment(ZEnvironment(dataSource))
 
   override def create(memberTelegramId: Long, title: String, author: String, startDateInEpochSeconds: Int): Task[Book] = transaction {
     for {
@@ -23,24 +25,22 @@ final case class BookServiceLive(
       startDate <- toLocalDate(startDateInEpochSeconds)
       book <- bookRepository.create(member.id, title, author, startDate)
     } yield book
-  }.provideEnvironment(ZEnvironment(dataSource))
-
+  }
 
   override def getForMember(memberTelegramId: Long): Task[List[Book]] = transaction {
     bookRepository.getForMember(memberTelegramId)
-  }.provideEnvironment(ZEnvironment(dataSource))
-
+  }
 
   override def getCurrent(memberTelegramId: Long): Task[List[Book]] = transaction {
     bookRepository.getCurrent(memberTelegramId)
-  }.provideEnvironment(ZEnvironment(dataSource))
+  }
 
   override def finish(id: BookId, endDateInEpochSeconds: Int): Task[Unit] = transaction {
     for {
       endDate <- toLocalDate(endDateInEpochSeconds)
       _ <- bookRepository.update(id, endDate = Option(Option(endDate)))
     } yield ()
-  }.provideEnvironment(ZEnvironment(dataSource))
+  }
 
   private def toLocalDate(epochSeconds: Int): Task[LocalDate] = ZIO.attempt(
     Instant.ofEpochSecond(epochSeconds).atZone(ZoneId.systemDefault()).toLocalDate
@@ -54,7 +54,7 @@ final case class BookServiceLive(
         case None => ZIO.die(new RuntimeException("Book not found!")) //todo
       }
     } yield book
-  }.provideEnvironment(ZEnvironment(dataSource))
+  }
 
 }
 
