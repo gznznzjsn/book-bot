@@ -3,10 +3,9 @@ package bookbot.bot.listener
 import bookbot.bot.CoreBot
 import bookbot.model.{Book, BookId}
 import bookbot.service.BookService
-import com.bot4s.telegram.methods.EditMessageText
-import com.bot4s.telegram.models.{ChatId, InlineKeyboardButton, InlineKeyboardMarkup}
+import com.bot4s.telegram.methods.{EditMessageCaption, EditMessageReplyMarkup, EditMessageText}
+import com.bot4s.telegram.models.{ChatId, InlineKeyboardButton, InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup}
 import zio.{Task, ZIO, ZLayer}
-
 
 
 final case class BookListener(bookService: BookService) extends TelegramListener[CoreBot] {
@@ -94,7 +93,7 @@ final case class BookListener(bookService: BookService) extends TelegramListener
 
     def bookChoiceMarkupOpt(books: List[Book]): Option[InlineKeyboardMarkup] = {
       Option(InlineKeyboardMarkup.singleColumn(
-        books.map(b => InlineKeyboardButton(s"${b.title}", Option(bot.prefixTag("FINISH")(s"${b.id.id}"))))
+        books.map(b => InlineKeyboardButton(s"${b.title}", Option(bot.prefixTag("FINISH")(s"${b.id.id}")))),
       ))
     }
 

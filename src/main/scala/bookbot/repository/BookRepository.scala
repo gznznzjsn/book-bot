@@ -1,19 +1,20 @@
 package bookbot.repository
 
 import bookbot.model.{Book, BookId, MemberId}
-import zio.Task
+import zio.RIO
 
 import java.time.LocalDate
+import javax.sql.DataSource
 
 trait BookRepository {
 
-  def create(memberId: MemberId, title: String, author: String, startDate: LocalDate): Task[Book]
+  def create(memberId: MemberId, title: String, author: String, startDate: LocalDate): RIO[DataSource, Book]
 
-  def get(id: BookId): Task[Option[Book]]
+  def get(id: BookId): RIO[DataSource, Option[Book]]
 
-  def getCurrent(memberTelegramId: Long): Task[List[Book]]
+  def getCurrent(memberTelegramId: Long): RIO[DataSource, List[Book]]
 
-  def getForMember(memberTelegramId: Long): Task[List[Book]]
+  def getForMember(memberTelegramId: Long): RIO[DataSource, List[Book]]
 
   def update(
               id: BookId,
@@ -22,7 +23,7 @@ trait BookRepository {
               author: Option[String] = None,
               startDate: Option[LocalDate] = None,
               endDate: Option[Option[LocalDate]] = None
-            ): Task[Unit]
+            ): RIO[DataSource, Unit]
 
 }
 

@@ -1,30 +1,27 @@
 package bookbot.repository
 
 import bookbot.model.{Book, BookId, Member, MemberId}
-import zio.{Task, ZEnvironment, ZLayer}
+import zio.{RIO, ZLayer}
 
 import java.time.LocalDate
 import javax.sql.DataSource
 
-final case class BookRepositoryLive(
-                                     dataSource: DataSource
-                                   ) extends BookRepository {
+final case class BookRepositoryLive() extends BookRepository {
 
   import bookbot.QuillContext._
 
-  override def create(memberId: MemberId, title: String, author: String, startDate: LocalDate): Task[Book] =
+  override def create(memberId: MemberId, title: String, author: String, startDate: LocalDate): RIO[DataSource, Book] =
     for {
       book <- Book.make(memberId, title, author, startDate, None)
-      _ <- run(query[Book].insertValue(lift(book))).provideEnvironment(ZEnvironment(dataSource))
+      _ <- run(query[Book].insertValue(lift(book)))
     } yield book
 
-  override def get(id: BookId): Task[Option[Book]] =
+  override def get(id: BookId): RIO[DataSource, Option[Book]] =
     run(query[Book].filter(_.id == lift(id)))
-      .provideEnvironment(ZEnvironment(dataSource))
       .map(_.headOption)
 
 
-  override def getCurrent(memberTelegramId: Long): Task[List[Book]] = {
+  override def getCurrent(memberTelegramId: Long): RIO[DataSource, List[Book]] = {
     run(
       query[Book]
         .filter(_.endDate.isEmpty)
@@ -32,17 +29,15 @@ final case class BookRepositoryLive(
         .filter(_._2.telegramId == lift(memberTelegramId))
         .map(_._1)
     )
-      .provideEnvironment(ZEnvironment(dataSource))
   }
 
-  override def getForMember(memberTelegramId: Long): Task[List[Book]] = {
+  override def getForMember(memberTelegramId: Long): RIO[DataSource, List[Book]] = {
     run(
       query[Book]
         .join(query[Member]).on(_.memberId == _.id)
         .filter(_._2.telegramId == lift(memberTelegramId))
         .map(_._1)
     )
-      .provideEnvironment(ZEnvironment(dataSource))
   }
 
   override def update(
@@ -52,7 +47,7 @@ final case class BookRepositoryLive(
                        author: Option[String],
                        startDate: Option[LocalDate],
                        endDate: Option[Option[LocalDate]]
-                     ): Task[Unit] = {
+                     ): RIO[DataSource, Unit] = {
     run(
       dynamicQuery[Book]
         .filter(_.id == lift(id))
@@ -64,7 +59,6 @@ final case class BookRepositoryLive(
           setOpt(_.endDate, endDate)
         )
     )
-      .provideEnvironment(ZEnvironment(dataSource))
       .unit
   }
 
@@ -72,6 +66,6 @@ final case class BookRepositoryLive(
 
 object BookRepositoryLive {
 
-  val layer: ZLayer[DataSource, Nothing, BookRepository] = ZLayer.fromFunction(BookRepositoryLive.apply _)
+  val layer: ZLayer[Any, Nothing, BookRepository] = ZLayer.fromFunction(BookRepositoryLive.apply _)
 
 }
